@@ -49,10 +49,24 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-  for filename in config.files {
+  let mut line_counter: u32 = 0;
+  for filename in &config.files {
     match open(&filename) {
       Err(err) => eprintln!("Failed to open {}: {}", filename, err),
-      Ok(_) => println!("Opened {}", filename),
+      Ok(file) => {
+        for line_result in file.lines(){
+          let line = line_result?;
+          if line.len() > 0 && config.number_nonblank_lines {
+            line_counter += 1;
+            println!("{:>6}\t{}", line_counter, line);
+          } else if config.number_lines {
+            line_counter += 1;
+            println!("{:>6}\t{}", line_counter, line);
+          } else {
+            println!("{}", line);
+          }
+        }
+      },
     }
   }
   Ok(())
